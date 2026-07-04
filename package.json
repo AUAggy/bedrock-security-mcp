@@ -1,0 +1,56 @@
+{
+  "name": "bedrock-security-mcp",
+  "version": "0.1.0",
+  "description": "MCP server for auditing AWS AI/ML workload security — Bedrock IAM, prompt injection signals, posture reports",
+  "type": "module",
+  "bin": {
+    "bedrock-security-mcp": "./dist/index.js"
+  },
+  "main": "dist/index.js",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "start": "node dist/index.js",
+    "test": "vitest run",
+    "build:catalog": "node dist/scripts/generate-catalog.js",
+    "prepublishOnly": "npm run build && npm audit --audit-level=high"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AUAggy/bedrock-security-mcp.git"
+  },
+  "homepage": "https://github.com/AUAggy/bedrock-security-mcp#readme",
+  "bugs": {
+    "url": "https://github.com/AUAggy/bedrock-security-mcp/issues"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "aws",
+    "bedrock",
+    "security",
+    "ai-security",
+    "prompt-injection"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "@aws-sdk/client-bedrock": "^3.700.0",
+    "@aws-sdk/client-cloudtrail": "^3.700.0",
+    "@aws-sdk/client-cloudwatch-logs": "^3.700.0",
+    "@aws-sdk/client-iam": "^3.700.0",
+    "@modelcontextprotocol/sdk": "^1.12.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.8.0",
+    "vitest": "^4.1.9"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

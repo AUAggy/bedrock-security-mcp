@@ -1,0 +1,226 @@
+{
+  "$schema": "https://example.com/bedrock-security-mcp/rules-catalog-v1.json",
+  "generatedBy": "bedrock-security-mcp — run `npm run build:catalog` to regenerate from src/rules/catalog.ts",
+  "note": "Single source of truth is src/rules (RuleSpec.threat/rationale + DETECTION_RULE_METADATA). This file is a generated artifact; do not edit by hand.",
+  "rules": [
+    {
+      "ruleId": "wildcard-bedrock-action",
+      "title": "Role has wildcard bedrock:* permissions",
+      "severity": "critical",
+      "appliesTo": "iam_statement",
+      "complianceFrameworks": [
+        "OWASP_LLM_TOP10:LLM06",
+        "OWASP_AGENTIC:ASI03",
+        "AWS_WA_ML:SEC-3",
+        "NIST_AI_RMF"
+      ],
+      "threat": "A compromised principal with bedrock:* can invoke any foundation model, extract training data via prompt extraction, poison knowledge bases, or create guardrails that selectively bypass content filters.",
+      "rationale": "A Bedrock wildcard is worse than an S3 wildcard: model invocation is irreversible (data leaves the account in the response), and guardrail/KM manipulation weakens every other control. The blast radius is every Bedrock resource in the account, not one bucket."
+    },
+    {
+      "ruleId": "no-condition-keys",
+      "title": "Bedrock permission lacks condition keys",
+      "severity": "high",
+      "appliesTo": "iam_statement",
+      "complianceFrameworks": [
+        "OWASP_AGENTIC:ASI03",
+        "AWS_WA_ML:SEC-3",
+        "NIST_AI_RMF"
+      ],
+      "threat": "Bedrock access is usable from any IP, any region, at any time. A leaked long-term credential or a compromised SSRF path can invoke models from anywhere.",
+      "rationale": "Condition keys are the only IAM-layer control that constrains where and when a permission is usable. Without them, geographic and time-based abuse patterns (off-hours exfiltration, unusual-region calls) are structurally unblockable at IAM."
+    },
+    {
+      "ruleId": "wildcard-principal",
+      "title": "Bedrock role trust policy allows wildcard principal",
+      "severity": "critical",
+      "appliesTo": "iam_role",
+      "complianceFrameworks": [
+        "OWASP_LLM_TOP10:LLM06",
+        "OWASP_AGENTIC:ASI03",
+        "NIST_AI_RMF"
+      ],
+      "threat": "Any AWS principal worldwide can assume this role and invoke models in your account. Cross-tenant and supply-chain actors can consume your model access at your cost and under your account identity.",
+      "rationale": "Wildcard trust plus Bedrock permissions is the highest-impact IAM misconfiguration for AI workloads: it turns an IAM defect into a direct model-access path for arbitrary external identities. No region or IP condition rescues a Principal: * trust."
+    },
+    {
+      "ruleId": "cross-account-bedrock-access",
+      "title": "Bedrock role is assumable by external AWS account",
+      "severity": "high",
+      "appliesTo": "iam_role",
+      "complianceFrameworks": [
+        "OWASP_AGENTIC:ASI03",
+        "OWASP_AGENTIC:ASI04",
+        "NIST_AI_RMF"
+      ],
+      "threat": "An external AWS account can assume this Bedrock-privileged role, creating a cross-account AI access path that bypasses your account's own IAM review.",
+      "rationale": "Cross-account access is sometimes intentional (a trusted partner), but undocumented cross-account Bedrock access is a supply-chain vector (OWASP ASI04). The check surfaces it so it can be verified and ExternalId-enforced, not silently trusted."
+    },
+    {
+      "ruleId": "not-action-not-resource",
+      "title": "Policy statement uses NotAction or NotResource",
+      "severity": "medium",
+      "appliesTo": "iam_statement",
+      "complianceFrameworks": [
+        "OWASP_AGENTIC:ASI03",
+        "AWS_WA_ML:SEC-3",
+        "NIST_AI_RMF"
+      ],
+      "threat": "Inverted match semantics (NotAction/NotResource) are easy to misread; a reviewer may believe a statement scopes Bedrock when it actually grants everything except Bedrock, or vice versa.",
+      "rationale": "Automated analysis cannot soundly collapse NotAction into an allow-list. The honest output is to flag for human review rather than produce a false clean or a false fail."
+    },
+    {
+      "ruleId": "bedrock-logging-disabled",
+      "title": "Bedrock model-invocation logging is disabled",
+      "severity": "high",
+      "appliesTo": "bedrock_config",
+      "complianceFrameworks": [
+        "AWS_WA_ML:SEC-10",
+        "NIST_AI_RMF",
+        "MITRE_ATLAS"
+      ],
+      "threat": "Without model-invocation logging, prompt-injection incidents and data exfiltration via LLM responses leave no audit trail. Tool 2's content scan also cannot run.",
+      "rationale": "Logging is the precondition for every detection control in this tool. A security program that cannot reconstruct what a compromised model endpoint did is blind to its primary AI incident classes (MITRE ATLAS)."
+    },
+    {
+      "ruleId": "invocation-logs-without-cmk",
+      "title": "Bedrock invocation logs lack customer-managed KMS encryption",
+      "severity": "medium",
+      "appliesTo": "bedrock_config",
+      "complianceFrameworks": [
+        "AWS_WA_ML:SEC-6",
+        "NIST_AI_RMF"
+      ],
+      "threat": "Prompt bodies and model responses in the log group are protected only by default CloudWatch encryption; you cannot independently revoke or rotate access.",
+      "rationale": "Prompt logs are sensitive (they may carry PII, proprietary context, or extracted training data). A customer-managed CMK gives incident-response and key-revocation independence from the service, satisfying AWS WA ML SEC-6."
+    },
+    {
+      "ruleId": "guardrail-content-filter-weak",
+      "title": "Guardrail lacks prompt-attack filter or runs at low strength",
+      "severity": "high",
+      "appliesTo": "bedrock_guardrail",
+      "complianceFrameworks": [
+        "OWASP_LLM_TOP10:LLM01",
+        "OWASP_AGENTIC:ASI03",
+        "AWS_WA_ML:SEC-3",
+        "NIST_AI_RMF"
+      ],
+      "threat": "Prompt-injection and harmful-content attacks reach the model unfiltered; the guardrail is the last preventive layer before model invocation.",
+      "rationale": "This is the preventive counterpart to Tool 2's prompt-injection detection. A guardrail without a HIGH-strength PROMPT_ATTACK filter is theatre: it exists but does not block the attack class it is named for."
+    },
+    {
+      "ruleId": "guardrail-no-pii-filter",
+      "title": "Guardrail has no PII filter configured",
+      "severity": "medium",
+      "appliesTo": "bedrock_guardrail",
+      "complianceFrameworks": [
+        "OWASP_LLM_TOP10:LLM02",
+        "AWS_WA_ML:SEC-6",
+        "NIST_AI_RMF"
+      ],
+      "threat": "Prompts and responses can carry PII (SSN, email, phone) unmasked, leaking it into logs, downstream stores, or model training corpora.",
+      "rationale": "PII filtering at the guardrail layer is content-aware in a way IAM and network controls are not. Without it, the data-protection story for the workload is incomplete regardless of encryption."
+    },
+    {
+      "ruleId": "guardrail-no-denied-topics",
+      "title": "Guardrail blocks no topics",
+      "severity": "low",
+      "appliesTo": "bedrock_guardrail",
+      "complianceFrameworks": [
+        "OWASP_LLM_TOP10:LLM06",
+        "AWS_WA_ML:SEC-3",
+        "NIST_AI_RMF"
+      ],
+      "threat": "The guardrail blocks content categories but no topics; out-of-scope domains (legal, medical, financial advice) are not refused.",
+      "rationale": "Topic scoping bounds what the model will discuss, reducing misuse and liability. A guardrail with no topics is a content filter, not a scope control."
+    },
+    {
+      "ruleId": "guardrail-grounding-disabled",
+      "title": "Guardrail has no contextual grounding",
+      "severity": "low",
+      "appliesTo": "bedrock_guardrail",
+      "complianceFrameworks": [
+        "OWASP_LLM_TOP10:LLM08",
+        "AWS_WA_ML:SEC-6",
+        "NIST_AI_RMF"
+      ],
+      "threat": "For RAG workloads, ungrounded or hallucinated responses are not blocked at the guardrail layer; the model can assert facts not present in retrieved context.",
+      "rationale": "Contextual grounding is the guardrail-native control for hallucination and ungrounded exfiltration of retrieved context (OWASP LLM08). Without it, RAG output quality and safety rely entirely on the application layer."
+    },
+    {
+      "ruleId": "prompt-injection-*",
+      "title": "Prompt injection signature detected",
+      "severity": "critical",
+      "appliesTo": "invocation_log",
+      "complianceFrameworks": [
+        "OWASP_LLM_TOP10:LLM01",
+        "OWASP_AGENTIC:ASI01",
+        "MITRE_ATLAS"
+      ],
+      "threat": "An attacker or compromised upstream application is submitting crafted prompts to override instructions, leak the system prompt, jailbreak the model, or smuggle internal reasoning.",
+      "rationale": "CloudWatch Logs carries the actual prompt body; regex on the request catches the attack at the point of injection with the principal and event ID for response. This is the project's differentiator — no vendor ships post-hoc prompt-injection detection."
+    },
+    {
+      "ruleId": "off-hours-bedrock-usage",
+      "title": "Off-hours Bedrock usage spike",
+      "severity": "medium",
+      "appliesTo": "cloudtrail_event",
+      "complianceFrameworks": [
+        "NIST_AI_RMF",
+        "MITRE_ATLAS"
+      ],
+      "threat": "Repeated model invocation outside business hours may indicate automated exfiltration, a compromised credential running batch extraction, or a misconfigured job.",
+      "rationale": "Time-based anomaly detection uses CloudTrail metadata that is always present; it surfaces behavioral signal even when prompt bodies are unavailable (logging off). UTC-biased but tunable."
+    },
+    {
+      "ruleId": "guardrail-less-invocation",
+      "title": "Bedrock invocations without a guardrail",
+      "severity": "medium",
+      "appliesTo": "invocation_log",
+      "complianceFrameworks": [
+        "OWASP_LLM_TOP10:LLM01",
+        "OWASP_LLM_TOP10:LLM06",
+        "OWASP_AGENTIC:ASI03",
+        "MITRE_ATLAS"
+      ],
+      "threat": "The application invokes models without a guardrail, so no preventive content/PII/topic control applies at the Bedrock layer for those calls.",
+      "rationale": "Config-level guardrail audits (Tool 1) cannot see runtime attachment; this check fires at the invocation layer where attachment actually matters, closing the gap between 'a guardrail exists' and 'a guardrail was used.'"
+    },
+    {
+      "ruleId": "cloudtrail-management-disabled",
+      "title": "CloudTrail management-event logging is not enabled",
+      "severity": "medium",
+      "appliesTo": "cloudtrail_config",
+      "complianceFrameworks": [
+        "NIST_AI_RMF",
+        "MITRE_ATLAS"
+      ],
+      "threat": "A missing CloudTrail produces a false 'no signals detected' clean bill; the user believes they have no Bedrock activity when in fact detection is non-functional.",
+      "rationale": "The honest output when CloudTrail is off is a NOT_APPLICABLE, not an empty result. This prevents the most embarrassing failure mode for a detection tool — reporting clean when it cannot see."
+    },
+    {
+      "ruleId": "excessive-token-usage",
+      "title": "High token count Bedrock invocation",
+      "severity": "low",
+      "appliesTo": "invocation_log",
+      "complianceFrameworks": [
+        "OWASP_LLM_TOP10:LLM10",
+        "NIST_AI_RMF"
+      ],
+      "threat": "A single invocation consuming an anomalously high token count may indicate data exfiltration via large model responses (extracted context, retrieved documents).",
+      "rationale": "Uses the real consumed totalTokenCount from invocation-log metadata, not the caller's maxTokens cap. Complements signature-based detection for novel exfiltration that does not match known injection patterns."
+    },
+    {
+      "ruleId": "prompt-scan-logging-unavailable",
+      "title": "Prompt content scan skipped",
+      "severity": "medium",
+      "appliesTo": "bedrock_config",
+      "complianceFrameworks": [
+        "NIST_AI_RMF",
+        "MITRE_ATLAS"
+      ],
+      "threat": "Content scanning cannot run because model-invocation logging is disabled or S3-only; prompt-injection detection is non-functional.",
+      "rationale": "Surfaces the dependency explicitly rather than returning an empty result. Makes bedrock-logging-disabled a load-bearing finding, not hygiene."
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "ReadIAMForBedrockAudit",
+      "Effect": "Allow",
+      "Action": [
+        "iam:ListRoles",
+        "iam:GetRolePolicy",
+        "iam:ListAttachedRolePolicies",
+        "iam:ListRolePolicies",
+        "iam:GetPolicy",
+        "iam:GetPolicyVersion"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "ReadCloudTrailForBedrockEvents",
+      "Effect": "Allow",
+      "Action": [
+        "cloudtrail:LookupEvents",
+        "cloudtrail:DescribeTrails"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "ReadBedrockConfiguration",
+      "Effect": "Allow",
+      "Action": [
+        "bedrock:GetModelInvocationLoggingConfiguration",
+        "bedrock:ListGuardrails",
+        "bedrock:GetGuardrail"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "ReadInvocationLogsForPromptScan",
+      "Effect": "Allow",
+      "Action": [
+        "logs:FilterLogEvents",
+        "logs:DescribeLogGroups"
+      ],
+      "Resource": "*"
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "roleName": "RoleA-OverPermissioned",
+  "arn": "arn:aws:iam::111122223333:role/RoleA-OverPermissioned",
+  "assumeRolePolicyDocument": "%7B%22Version%22%3A%222012-10-17%22%2C%22Statement%22%3A%5B%7B%22Effect%22%3A%22Allow%22%2C%22Principal%22%3A%7B%22AWS%22%3A%22arn%3Aaws%3Aiam%3A%3A111122223333%3Aroot%22%7D%2C%22Action%22%3A%22sts%3AAssumeRole%22%7D%5D%7D",
+  "attachedPolicies": [],
+  "inlinePolicies": {
+    "bedrock-wildcard": {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "bedrock:*",
+          "Resource": "*"
+        }
+      ]
+    }
+  }
+}
