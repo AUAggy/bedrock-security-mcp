@@ -182,6 +182,7 @@ The tool is built to be audited. Each claim below is verifiable against the publ
 - **Read-only by construction.** `grep -r '\.send(new' src/ | grep -iv 'List\|Get\|Lookup\|Describe\|Filter'` returns nothing.
 - **No credential handling.** `grep -ri 'ACCESS_KEY\|SECRET_KEY\|sessionToken' src/` returns nothing. The AWS SDK credential chain does all the work.
 - **No outbound calls except the AWS SDK.** No fetch, no HTTP clients, no telemetry.
+- **Scanner capability flags come from the MCP SDK, not this tool.** Supply-chain scanners (e.g. Socket) flag shell access (`cross-spawn`), eval (`ajv`), and an HTTP server (`@hono/node-server`) in the dependency tree. All three arrive via `@modelcontextprotocol/sdk`. This server imports only its stdio modules, which reference none of them, so that code is never loaded. `grep -rE 'eval\(|child_process' src/` returns nothing.
 - **Fail closed.** AWS API errors become findings with `status: "ERROR"` and a concrete remediation, never stack traces. Unparseable policy documents surface as ERROR findings instead of passing silently.
 - **Five runtime dependencies.** Four AWS SDK clients and the MCP SDK. `package-lock.json` is committed.
 
