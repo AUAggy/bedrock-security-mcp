@@ -226,6 +226,8 @@ npm run build:catalog  # regenerate examples/rules-catalog.json from the rules
 
 Unit tests run against committed JSON fixtures and never call AWS. The audit itself requires credentials only at runtime.
 
+CI runs tests, the build, and `npm audit` on every pull request and push to main. Releases are published to npm from GitHub Actions via [Trusted Publishing](https://docs.npmjs.com/trusted-publishers/) (OIDC): no publish tokens exist, and every release carries a [SLSA provenance attestation](https://www.npmjs.com/package/bedrock-security-mcp#provenance) linking the npm package to the exact commit and workflow run that built it. Dependabot security updates are enabled.
+
 ## License
 
 MIT
