@@ -113,6 +113,25 @@ Every rule carries a written threat scenario and a rationale for why the check r
 
 A real report from a sandbox account (identifiers replaced with AWS documentation placeholders) is committed at [`examples/sample-posture-report.html`](examples/sample-posture-report.html).
 
+## What AWS Config can and cannot see
+
+AWS publishes a [Security and Governance Best Practices for Amazon Bedrock conformance pack](https://github.com/awslabs/aws-config-rules/blob/master/aws-config-conformance-packs/Security-and-Governance-Best-Practices-for-Amazon-Bedrock.yaml) of 76 managed AWS Config rules. Read the rules and the split is plain (as of July 2026): 3 rules evaluate Bedrock resources directly (AgentCore gateway authorization, runtime network placement, memory encryption). The other 73 are long-standing managed rules for the infrastructure around a Bedrock workload: S3 encryption and versioning, RDS and Neptune backups, API Gateway logging, OpenSearch encryption, Secrets Manager rotation.
+
+That coverage is useful. If you already run AWS Config, deploy the pack. It is also a different layer. Config evaluates resource configuration state; this tool reads the contents that state points at: policy documents, guardrail definitions, prompt bodies. Neither replaces the other.
+
+| What you want to know | Bedrock conformance pack | bedrock-security-mcp |
+|---|---|---|
+| Bedrock-scoped IAM risk: wildcard actions and principals, missing condition keys, cross-account trust policies | Not covered. No rules parse policy documents | `audit_bedrock_posture` (see rule table above) |
+| Guardrail quality: filter strength, PII entities, denied topics, contextual grounding | Not covered. The pack has no guardrail rules | Every guardrail fetched and evaluated |
+| Prompt-injection signals in invocation logs, guardrail-less invocations, off-hours anomalies | Not possible. Config does not read log content | `find_prompt_injection_signals` |
+| Infrastructure hygiene around the workload: S3, RDS/Neptune, OpenSearch, API Gateway, Secrets Manager, SNS/SQS | 73 rules; its core strength | Out of scope |
+| Bedrock AgentCore posture | 3 rules | Out of scope in v1 |
+| Findings mapped to AI risk frameworks (OWASP LLM Top 10, OWASP Agentic Applications Top 10, NIST AI RMF, MITRE ATLAS) | No AI-framework mappings | Every rule, with threat scenario and rationale |
+| Prerequisites and cost | AWS Config recorder enabled; metered per configuration item and rule evaluation | A read-only IAM profile; free |
+| Where it runs | Inside AWS, deployed per account or organization | Laptop, CI, or any MCP client; the CLI exit code gates a pipeline |
+
+The pack watches the infrastructure your AI workload sits on. This tool audits the AI-specific risk inside it. Deploy the pack for the platform layer and run this audit for the Bedrock layer; the remediation roadmap in the HTML report assumes nothing about which you adopted first.
+
 ## Security & Permissions
 
 ### Features
