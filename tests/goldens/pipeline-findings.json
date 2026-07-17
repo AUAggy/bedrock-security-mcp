@@ -1,0 +1,190 @@
+[
+  {
+    "findingId": "wildcard-bedrock-action-arn:aws:iam::111122223333:role/RoleA-OverPermissioned",
+    "ruleId": "wildcard-bedrock-action",
+    "title": "RoleA-OverPermissioned has wildcard Bedrock permissions",
+    "severity": "critical",
+    "status": "FAIL",
+    "resource": "arn:aws:iam::111122223333:role/RoleA-OverPermissioned",
+    "region": "global",
+    "details": "Role \"RoleA-OverPermissioned\" has broad Bedrock access: bedrock:*. Statement SID: Unnamed. Resources are also wildcard (*). No condition keys restrict access.",
+    "remediation": "Replace wildcard actions with scoped bedrock:InvokeModel on specific model ARNs:\n\naws iam put-role-policy --role-name RoleA-OverPermissioned --policy-name scoped-bedrock --policy-document '{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Action\":[\"bedrock:InvokeModel\"],\"Resource\":[\"arn:aws:bedrock:*::foundation-model/anthropic.claude-sonnet-4-*\"],\"Condition\":{\"StringEquals\":{\"aws:RequestedRegion\":\"us-east-1\"}}}]}'",
+    "complianceFrameworks": [
+      "OWASP_LLM_TOP10:LLM06",
+      "OWASP_AGENTIC:ASI03",
+      "AWS_WA_ML:SEC-3",
+      "NIST_AI_RMF"
+    ],
+    "reference": "https://docs.aws.amazon.com/bedrock/latest/userguide/security-iam.html"
+  },
+  {
+    "findingId": "no-condition-keys-arn:aws:iam::111122223333:role/RoleA-OverPermissioned",
+    "ruleId": "no-condition-keys",
+    "title": "RoleA-OverPermissioned: Bedrock access has no condition keys",
+    "severity": "high",
+    "status": "FAIL",
+    "resource": "arn:aws:iam::111122223333:role/RoleA-OverPermissioned",
+    "region": "global",
+    "details": "Role \"RoleA-OverPermissioned\" allows Bedrock actions (bedrock:*) without any condition keys. No IP restriction, no region restriction, no time-based restriction.",
+    "remediation": "Add condition keys to restrict the blast radius. Minimum: require aws:RequestedRegion. Best practice: add aws:SourceIp for known IP ranges:\n\n\"Condition\": {\n  \"StringEquals\": { \"aws:RequestedRegion\": \"us-east-1\" },\n  \"IpAddress\": { \"aws:SourceIp\": [\"203.0.113.0/24\"] }\n}",
+    "complianceFrameworks": [
+      "OWASP_AGENTIC:ASI03",
+      "AWS_WA_ML:SEC-3",
+      "NIST_AI_RMF"
+    ],
+    "reference": "https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_condition-keys.html"
+  },
+  {
+    "findingId": "not-action-not-resource-arn:aws:iam::111122223333:role/RoleF-NotAction",
+    "ruleId": "not-action-not-resource",
+    "title": "RoleF-NotAction: statement uses NotAction",
+    "severity": "medium",
+    "status": "FAIL",
+    "resource": "arn:aws:iam::111122223333:role/RoleF-NotAction",
+    "region": "global",
+    "details": "Role \"RoleF-NotAction\" has a Bedrock-relevant statement (SID: Unnamed) using NotAction. Inverted match semantics cannot be evaluated automatically — a reviewer must confirm the statement grants only what is intended.",
+    "remediation": "Rewrite the statement to use explicit Action and Resource lists. Avoid NotAction/NotResource on Bedrock-relevant statements unless the inversion is deliberately a guardrail (e.g. a Deny with NotAction to exempt a specific model).",
+    "complianceFrameworks": [
+      "OWASP_AGENTIC:ASI03",
+      "AWS_WA_ML:SEC-3",
+      "NIST_AI_RMF"
+    ],
+    "reference": "https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_notaction.html"
+  },
+  {
+    "findingId": "wildcard-principal-arn:aws:iam::111122223333:role/RoleD-WildcardPrincipalTrust",
+    "ruleId": "wildcard-principal",
+    "title": "RoleD-WildcardPrincipalTrust: trust policy allows wildcard principal",
+    "severity": "critical",
+    "status": "FAIL",
+    "resource": "arn:aws:iam::111122223333:role/RoleD-WildcardPrincipalTrust",
+    "region": "global",
+    "details": "Role \"RoleD-WildcardPrincipalTrust\" has a trust policy that allows any AWS principal (\"Principal\": \"*\") to assume it. Combined with its Bedrock permissions, this means any AWS identity worldwide could invoke models in your account.",
+    "remediation": "Restrict the trust policy to specific principals, accounts, or service identities. For cross-account access, specify the exact account ARN. For service roles, use the specific service principal (e.g., \"bedrock.amazonaws.com\").",
+    "complianceFrameworks": [
+      "OWASP_LLM_TOP10:LLM06",
+      "OWASP_AGENTIC:ASI03",
+      "NIST_AI_RMF"
+    ],
+    "reference": "https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_principal.html"
+  },
+  {
+    "findingId": "cross-account-bedrock-access-arn:aws:iam::111122223333:role/RoleE-CrossAccountTrust",
+    "ruleId": "cross-account-bedrock-access",
+    "title": "RoleE-CrossAccountTrust: Bedrock role assumable by external account(s)",
+    "severity": "high",
+    "status": "FAIL",
+    "resource": "arn:aws:iam::111122223333:role/RoleE-CrossAccountTrust",
+    "region": "global",
+    "details": "Role \"RoleE-CrossAccountTrust\" can be assumed by external AWS account(s): 999988887777, 555566667777. This creates a cross-account AI access path.",
+    "remediation": "Verify the external account(s) are trusted and documented. Add the external account IDs to an allowlist. If cross-account Bedrock access is not intentional, remove the external account from the trust policy. Add the sts:ExternalId condition for additional security.",
+    "complianceFrameworks": [
+      "OWASP_AGENTIC:ASI03",
+      "OWASP_AGENTIC:ASI04",
+      "NIST_AI_RMF"
+    ],
+    "reference": "https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_create_for-user_externalid.html"
+  },
+  {
+    "findingId": "guardrail-content-filter-weak-arn:aws:bedrock:us-east-1:111122223333:guardrail/gr-weak",
+    "ruleId": "guardrail-content-filter-weak",
+    "title": "Guardrail 'Guardrail-Weak' has weak content filtering",
+    "severity": "high",
+    "status": "FAIL",
+    "resource": "arn:aws:bedrock:us-east-1:111122223333:guardrail/gr-weak",
+    "region": "global",
+    "details": "Guardrail 'Guardrail-Weak' has NO PROMPT_ATTACK filter, with minimum content-filter strength 'LOW'. Tool 2 flags prompt-injection signatures in your invocation logs; this guardrail is the preventive counterpart and is currently too weak to block them.",
+    "remediation": "Edit the guardrail: enable the PROMPT_ATTACK filter and set all content filters (sexual, violence, hate, insults, misconduct, prompt_attack) to HIGH for both input and output.",
+    "complianceFrameworks": [
+      "OWASP_LLM_TOP10:LLM01",
+      "OWASP_AGENTIC:ASI03",
+      "AWS_WA_ML:SEC-3",
+      "NIST_AI_RMF"
+    ],
+    "reference": "https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails-components.html"
+  },
+  {
+    "findingId": "guardrail-no-pii-filter-arn:aws:bedrock:us-east-1:111122223333:guardrail/gr-weak",
+    "ruleId": "guardrail-no-pii-filter",
+    "title": "Guardrail 'Guardrail-Weak' has no PII filter",
+    "severity": "medium",
+    "status": "FAIL",
+    "resource": "arn:aws:bedrock:us-east-1:111122223333:guardrail/gr-weak",
+    "region": "global",
+    "details": "Guardrail 'Guardrail-Weak' has 0 PII entities configured. Prompts/responses can carry PII without masking.",
+    "remediation": "Add PII entity filters to the guardrail (at minimum: SSN, EMAIL, PHONE, CREDIT_DEBIT_NUMBER). Configure as MASK or BLOCK per your data-handling policy.",
+    "complianceFrameworks": [
+      "OWASP_LLM_TOP10:LLM02",
+      "AWS_WA_ML:SEC-6",
+      "NIST_AI_RMF"
+    ],
+    "reference": "https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails-pii.html"
+  },
+  {
+    "findingId": "guardrail-no-denied-topics-arn:aws:bedrock:us-east-1:111122223333:guardrail/gr-weak",
+    "ruleId": "guardrail-no-denied-topics",
+    "title": "Guardrail 'Guardrail-Weak' blocks no topics",
+    "severity": "low",
+    "status": "FAIL",
+    "resource": "arn:aws:bedrock:us-east-1:111122223333:guardrail/gr-weak",
+    "region": "global",
+    "details": "Guardrail 'Guardrail-Weak' has 0 denied topics. It provides content filtering but no topic scoping, so out-of-scope domains are not blocked.",
+    "remediation": "Add denied-topic configurations for any domain outside this guardrail's intended use case (e.g., financial advice, legal guidance, internal HR topics).",
+    "complianceFrameworks": [
+      "OWASP_LLM_TOP10:LLM06",
+      "AWS_WA_ML:SEC-3",
+      "NIST_AI_RMF"
+    ],
+    "reference": "https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails-components.html"
+  },
+  {
+    "findingId": "guardrail-grounding-disabled-arn:aws:bedrock:us-east-1:111122223333:guardrail/gr-weak",
+    "ruleId": "guardrail-grounding-disabled",
+    "title": "Guardrail 'Guardrail-Weak' lacks contextual grounding",
+    "severity": "low",
+    "status": "FAIL",
+    "resource": "arn:aws:bedrock:us-east-1:111122223333:guardrail/gr-weak",
+    "region": "global",
+    "details": "Guardrail 'Guardrail-Weak' has no contextual grounding filter. For RAG/KB-backed workloads, this means ungrounded or hallucinated responses are not blocked at the guardrail layer.",
+    "remediation": "If this guardrail protects a RAG workload, add a contextual grounding filter with grounding and relevance thresholds (start at 0.75 and tune).",
+    "complianceFrameworks": [
+      "OWASP_LLM_TOP10:LLM08",
+      "AWS_WA_ML:SEC-6",
+      "NIST_AI_RMF"
+    ],
+    "reference": "https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails-contextual-grounding.html"
+  },
+  {
+    "findingId": "bedrock-logging-disabled-bedrock:model-invocation-logging",
+    "ruleId": "bedrock-logging-disabled",
+    "title": "Bedrock model-invocation logging disabled",
+    "severity": "high",
+    "status": "FAIL",
+    "resource": "bedrock:model-invocation-logging",
+    "region": "global",
+    "details": "Model-invocation logging is not enabled. Prompts and responses are not logged to CloudWatch or S3. This eliminates the audit trail needed for prompt-injection investigation AND disables Tool 2's content scan (which reads prompt bodies from CloudWatch Logs).",
+    "remediation": "Enable model-invocation logging via AWS Console (Bedrock → Settings → Model invocation logging) or CloudFormation. Configure a CloudWatch Logs destination (required for Tool 2 content scanning) with a customer-managed KMS key.",
+    "complianceFrameworks": [
+      "AWS_WA_ML:SEC-10",
+      "NIST_AI_RMF",
+      "MITRE_ATLAS"
+    ],
+    "reference": "https://docs.aws.amazon.com/bedrock/latest/userguide/model-invocation-logging.html"
+  },
+  {
+    "findingId": "invocation-logs-without-cmk-arn:aws:logs:::log-group:/aws/bedrock/model-invocations",
+    "ruleId": "invocation-logs-without-cmk",
+    "title": "Invocation log group lacks customer-managed KMS key",
+    "severity": "medium",
+    "status": "FAIL",
+    "resource": "arn:aws:logs:::log-group:/aws/bedrock/model-invocations",
+    "region": "global",
+    "details": "Invocation log group '/aws/bedrock/model-invocations' uses default CloudWatch encryption. Prompt bodies and model responses in this log group are not protected by a customer-managed KMS key, so you cannot independently revoke access or rotate the key.",
+    "remediation": "Associate a customer-managed KMS key with the CloudWatch log group (logs:AssociateKmsKey) and grant only the Bedrock logging role + incident-response roles decrypt access. Update the Bedrock model-invocation logging role to allow kms:GenerateDataKey* on the key.",
+    "complianceFrameworks": [
+      "AWS_WA_ML:SEC-6",
+      "NIST_AI_RMF"
+    ],
+    "reference": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/encrypt-log-data-kms.html"
+  }
+]

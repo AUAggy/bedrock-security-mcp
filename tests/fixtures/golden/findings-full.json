@@ -1,0 +1,111 @@
+[
+  {
+    "findingId": "f-1",
+    "ruleId": "wildcard-bedrock-action",
+    "title": "RoleA has wildcard Bedrock permissions",
+    "severity": "critical",
+    "status": "FAIL",
+    "resource": "arn:aws:iam::111122223333:role/RoleA",
+    "region": "global",
+    "details": "Role has bedrock:* on *",
+    "remediation": "Scope the actions.",
+    "complianceFrameworks": ["OWASP_LLM_TOP10:LLM06", "NIST_AI_RMF"],
+    "reference": "https://docs.aws.amazon.com/bedrock/latest/userguide/security-iam.html"
+  },
+  {
+    "findingId": "f-2",
+    "ruleId": "wildcard-principal",
+    "title": "RoleD: trust policy allows wildcard principal",
+    "severity": "critical",
+    "status": "FAIL",
+    "resource": "arn:aws:iam::111122223333:role/RoleD",
+    "region": "global",
+    "details": "Role has bedrock:* on *",
+    "remediation": "Scope the actions.",
+    "complianceFrameworks": ["OWASP_LLM_TOP10:LLM06", "NIST_AI_RMF"]
+  },
+  {
+    "findingId": "f-3",
+    "ruleId": "no-condition-keys",
+    "title": "RoleA: Bedrock access has no condition keys",
+    "severity": "high",
+    "status": "FAIL",
+    "resource": "arn:aws:iam::111122223333:role/RoleA",
+    "region": "global",
+    "details": "Role has bedrock:* on *",
+    "remediation": "Scope the actions.",
+    "complianceFrameworks": ["OWASP_LLM_TOP10:LLM06", "NIST_AI_RMF"]
+  },
+  {
+    "findingId": "f-4",
+    "ruleId": "bedrock-logging-disabled",
+    "title": "Bedrock model-invocation logging disabled",
+    "severity": "high",
+    "status": "FAIL",
+    "resource": "bedrock:model-invocation-logging",
+    "region": "global",
+    "details": "Role has bedrock:* on *",
+    "remediation": "Scope the actions.",
+    "complianceFrameworks": ["OWASP_LLM_TOP10:LLM06", "NIST_AI_RMF"]
+  },
+  {
+    "findingId": "f-5",
+    "ruleId": "guardrail-no-pii-filter",
+    "title": "Guardrail 'Weak' has no PII filter",
+    "severity": "medium",
+    "status": "FAIL",
+    "resource": "arn:aws:bedrock:us-east-1:111122223333:guardrail/gr-weak",
+    "region": "global",
+    "details": "Guardrail 'Weak' has 0 PII entities | prompts can carry PII unmasked",
+    "remediation": "Scope the actions.",
+    "complianceFrameworks": ["OWASP_LLM_TOP10:LLM06", "NIST_AI_RMF"]
+  },
+  {
+    "findingId": "f-6",
+    "ruleId": "prompt-injection-ignore-previous-instructions",
+    "title": "Prompt injection signature detected: ignore-previous-instructions",
+    "severity": "critical",
+    "status": "FAIL",
+    "resource": "arn:aws:sts::111122223333:assumed-role/app/worker",
+    "region": "global",
+    "details": "Request body contains \"<script>\" & special chars | pipes",
+    "remediation": "Scope the actions.",
+    "complianceFrameworks": ["OWASP_LLM_TOP10:LLM06", "NIST_AI_RMF"]
+  },
+  {
+    "findingId": "f-7",
+    "ruleId": "excessive-token-usage",
+    "title": "High token count Bedrock invocation: 150000 tokens",
+    "severity": "low",
+    "status": "FAIL",
+    "resource": "arn:aws:iam::111122223333:role/RoleA",
+    "region": "global",
+    "details": "Role has bedrock:* on *",
+    "remediation": "Scope the actions.",
+    "complianceFrameworks": ["OWASP_LLM_TOP10:LLM06", "NIST_AI_RMF"]
+  },
+  {
+    "findingId": "f-8",
+    "ruleId": "no-injection-signals",
+    "title": "No prompt injection signals detected",
+    "severity": "low",
+    "status": "PASS",
+    "resource": "arn:aws:iam::111122223333:role/RoleA",
+    "region": "global",
+    "details": "Role has bedrock:* on *",
+    "remediation": "Scope the actions.",
+    "complianceFrameworks": ["OWASP_LLM_TOP10:LLM06", "NIST_AI_RMF"]
+  },
+  {
+    "findingId": "f-9",
+    "ruleId": "policy-parse-error",
+    "title": "Could not parse a policy document for RoleG",
+    "severity": "medium",
+    "status": "ERROR",
+    "resource": "arn:aws:iam::111122223333:role/RoleG",
+    "region": "global",
+    "details": "Role has bedrock:* on *",
+    "remediation": "Scope the actions.",
+    "complianceFrameworks": ["OWASP_LLM_TOP10:LLM06", "NIST_AI_RMF"]
+  }
+]
