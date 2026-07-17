@@ -1,0 +1,37 @@
+{
+  "guardrails": [
+    {
+      "guardrailId": "gr-strong",
+      "guardrailArn": "arn:aws:bedrock:us-east-1:111122223333:guardrail/gr-strong",
+      "name": "Guardrail-Strong",
+      "version": "1",
+      "contentFilters": [
+        { "type": "PROMPT_ATTACK", "inputStrength": "HIGH", "outputStrength": "HIGH" },
+        { "type": "HATE", "inputStrength": "HIGH", "outputStrength": "HIGH" }
+      ],
+      "hasPromptAttackFilter": true,
+      "minContentStrength": "HIGH",
+      "piiEntityCount": 3,
+      "deniedTopicCount": 1,
+      "hasGrounding": true
+    },
+    {
+      "guardrailId": "gr-weak",
+      "guardrailArn": "arn:aws:bedrock:us-east-1:111122223333:guardrail/gr-weak",
+      "name": "Guardrail-Weak",
+      "version": "1",
+      "contentFilters": [
+        { "type": "HATE", "inputStrength": "LOW", "outputStrength": "LOW" }
+      ],
+      "hasPromptAttackFilter": false,
+      "minContentStrength": "LOW",
+      "piiEntityCount": 0,
+      "deniedTopicCount": 0,
+      "hasGrounding": false
+    }
+  ],
+  "configs": [
+    { "loggingEnabled": false, "region": "global" },
+    { "loggingEnabled": true, "logGroupName": "/aws/bedrock/model-invocations", "region": "global" }
+  ]
+}

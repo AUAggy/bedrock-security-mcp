@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AWS Bedrock Security Posture Report — 111122223333</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ink: #1B1E23;
+    --ink-2: #55595F;
+    --ink-3: #9BA0A6;
+    --hairline: #E2E3E5;
+    --panel: #F6F6F4;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--ink);
+    background: #FFFFFF;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .serif {
+    font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, Cambria, "Times New Roman", serif;
+  }
+
+  .mono, code, pre, .rule-id, .bar-legend, .report-meta {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  }
+
+  code {
+    font-size: 12px;
+    background: var(--panel);
+    border: 1px solid var(--hairline);
+    padding: 1px 5px;
+  }
+
+  pre {
+    font-size: 12.5px;
+    background: var(--panel);
+    border: 1px solid var(--hairline);
+    padding: 12px 14px;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+    line-height: 1.55;
+  }
+
+  .page {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 48px 40px 72px;
+  }
+
+  /* --- Masthead: serif title over a thick-thin double rule ----------------- */
+  .eyebrow {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+    margin-bottom: 10px;
+  }
+
+  .masthead h1 {
+    font-size: 30px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.25;
+    margin-bottom: 18px;
+  }
+
+  .rule-double {
+    height: 6px;
+    border-top: 3px solid var(--ink);
+    border-bottom: 1px solid var(--ink);
+    margin-bottom: 14px;
+  }
+
+  .report-meta {
+    font-size: 12px;
+    color: var(--ink-2);
+    display: flex;
+    gap: 8px 24px;
+    flex-wrap: wrap;
+  }
+
+  .report-meta strong { color: var(--ink); font-weight: 600; }
+
+  .scope-line {
+    font-size: 12px;
+    color: var(--ink-3);
+    margin-top: 6px;
+  }
+
+  /* --- Overview -------------------------------------------------------------- */
+  .overview {
+    margin-top: 40px;
+    padding-top: 24px;
+    border-top: 1px solid var(--hairline);
+  }
+
+  .overview-grid {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 32px;
+    flex-wrap: wrap;
+  }
+
+  .risk-rating {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 650;
+    margin-bottom: 6px;
+  }
+
+  .health-score {
+    font-size: 52px;
+    font-weight: 650;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .health-score .denom {
+    font-size: 17px;
+    font-weight: 500;
+    color: var(--ink-3);
+  }
+
+  .health-label {
+    font-size: 12px;
+    color: var(--ink-2);
+    margin-top: 6px;
+  }
+
+  .figures {
+    display: flex;
+  }
+
+  .figure {
+    padding: 0 22px;
+    border-left: 1px solid var(--hairline);
+    text-align: right;
+  }
+
+  .figure:last-child { padding-right: 0; }
+
+  .figure-value {
+    font-size: 26px;
+    font-weight: 650;
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .figure-label {
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 600;
+    color: var(--ink-2);
+    margin-top: 2px;
+  }
+
+  .severity-bar {
+    display: flex;
+    gap: 1px;
+    height: 10px;
+    margin-top: 24px;
+    background: var(--hairline);
+    border: 1px solid var(--hairline);
+  }
+
+  .severity-bar > div { min-height: 8px; }
+
+  .bar-legend {
+    font-size: 11px;
+    margin-top: 8px;
+    color: var(--ink-3);
+  }
+
+  .legend-sep { color: var(--ink-3); padding: 0 8px; }
+
+  /* --- Sections ---------------------------------------------------------------- */
+  main { margin-top: 44px; }
+
+  .section-heading {
+    font-size: 12px;
+    font-weight: 650;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink);
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--ink);
+    margin-bottom: 0;
+  }
+
+  .findings-section,
+  .remediation-section,
+  .compliance-section,
+  .passed-section {
+    margin-bottom: 48px;
+  }
+
+  .remediation-section .section-heading,
+  .compliance-section .section-heading,
+  .passed-section .section-heading {
+    margin-bottom: 0;
+  }
+
+  /* --- Severity labels ----------------------------------------------------------- */
+  .severity-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    white-space: nowrap;
+    flex-shrink: 0;
+    min-width: 62px;
+  }
+
+  /* --- Finding entries: hairline list, 2px severity rule at left ------------------ */
+  .finding {
+    border-bottom: 1px solid var(--hairline);
+    border-left: 2px solid transparent;
+  }
+
+  .finding-header {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 13px 2px 13px 14px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    font: inherit;
+    color: inherit;
+    gap: 16px;
+  }
+
+  .finding-header:hover { background: var(--panel); }
+  .finding-header:focus-visible { outline: 2px solid var(--ink); outline-offset: -2px; }
+
+  .finding-title-row {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    min-width: 0;
+    flex: 1;
+  }
+
+  .finding-title {
+    font-size: 13.5px;
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .finding-meta {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    flex-shrink: 0;
+  }
+
+  .rule-id { font-size: 11px; color: var(--ink-3); }
+
+  .chevron {
+    color: var(--ink-3);
+    font-size: 11px;
+    transition: transform 0.15s ease;
+    display: inline-block;
+  }
+
+  .finding-body {
+    display: none;
+    padding: 6px 2px 20px 14px;
+  }
+
+  .finding-body.open { display: block; }
+
+  .finding-detail {
+    display: grid;
+    grid-template-columns: 128px 1fr;
+    gap: 16px;
+    padding: 7px 0;
+  }
+
+  .detail-label {
+    font-size: 10.5px;
+    font-weight: 650;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-2);
+    padding-top: 2px;
+  }
+
+  .detail-value { font-size: 13px; color: var(--ink); min-width: 0; }
+  .detail-value.mono { font-size: 12px; word-break: break-all; }
+
+  .tag {
+    display: inline-block;
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 10.5px;
+    color: var(--ink-2);
+    border: 1px solid var(--hairline);
+    padding: 2px 7px;
+    margin: 0 6px 6px 0;
+  }
+
+  a { color: var(--ink); text-decoration: underline; text-underline-offset: 2px; text-decoration-color: var(--ink-3); }
+  a:hover { text-decoration-color: var(--ink); }
+  .ref { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 11.5px; color: var(--ink-2); word-break: break-all; }
+
+  /* --- Tables ------------------------------------------------------------------- */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  th {
+    text-align: left;
+    font-size: 10.5px;
+    font-weight: 650;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-2);
+    padding: 10px 14px 8px 0;
+    border-bottom: 1px solid var(--hairline);
+  }
+
+  td {
+    padding: 9px 14px 9px 0;
+    border-bottom: 1px solid var(--hairline);
+    vertical-align: top;
+  }
+
+  td.mono { font-size: 11.5px; color: var(--ink-2); }
+  td.nowrap { white-space: nowrap; }
+  .framework-cell { font-weight: 500; white-space: nowrap; }
+
+  /* --- Passed checks --------------------------------------------------------------- */
+  .passed-summary {
+    font-size: 13px;
+    color: var(--ink-2);
+    border-bottom: 1px solid var(--hairline);
+    padding: 14px 0;
+    line-height: 1.7;
+  }
+  .passed-section .section-heading { border-bottom-color: #2E6E4E; }
+
+  /* --- Footer ------------------------------------------------------------------------ */
+  .report-footer {
+    border-top: 1px solid var(--ink);
+    margin-top: 8px;
+    padding-top: 14px;
+    font-size: 11px;
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    color: var(--ink-3);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px 24px;
+  }
+
+  /* --- Small screens ------------------------------------------------------------------- */
+  @media (max-width: 640px) {
+    .page { padding: 32px 20px 56px; }
+    .figures { width: 100%; }
+    .figure { flex: 1; padding: 0 10px; text-align: left; }
+    .figure:first-child { border-left: none; padding-left: 0; }
+    .finding-detail { grid-template-columns: 1fr; gap: 3px; }
+    .finding-meta .rule-id { display: none; }
+  }
+
+  /* --- Motion ----------------------------------------------------------------------------- */
+  @media (prefers-reduced-motion: reduce) {
+    .chevron { transition: none; }
+  }
+
+  /* --- Print ------------------------------------------------------------------------------- */
+  @media print {
+    .page { padding: 0; max-width: none; }
+    .finding-body { display: block !important; }
+    .finding-header { cursor: default; }
+    .chevron { display: none; }
+    .finding, table, tr { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page">
+
+<header class="masthead">
+  <p class="eyebrow">Security assessment · bedrock-security-mcp</p>
+  <h1 class="serif">AWS Bedrock Security Posture Report</h1>
+  <div class="rule-double"></div>
+  <div class="report-meta">
+    <span>Account <strong>111122223333</strong></span>
+    <span>Region <strong>us-east-1</strong></span>
+    <span>Generated <strong>2026-07-04 00:00:00 UTC</strong></span>
+  </div>
+  <p class="scope-line">Assessed against OWASP LLM Top 10 (2025), OWASP Agentic Applications Top 10, NIST AI RMF, MITRE ATLAS.</p>
+</header>
+
+<section class="overview">
+  <div class="overview-grid">
+    <div>
+      <div class="risk-rating" style="color: #A82C21;">Overall risk: Critical</div>
+      <div class="health-score" style="color: #A82C21;">1<span class="denom">/100</span></div>
+      <div class="health-label">Posture score · 7 violation(s), 1 error(s)</div>
+    </div>
+    <div class="figures">
+      <div class="figure">
+        <div class="figure-value" style="color: #A82C21;">3</div>
+        <div class="figure-label">Critical</div>
+      </div><div class="figure">
+        <div class="figure-value" style="color: #B4560B;">2</div>
+        <div class="figure-label">High</div>
+      </div><div class="figure">
+        <div class="figure-value" style="color: #8A6A05;">2</div>
+        <div class="figure-label">Medium</div>
+      </div><div class="figure">
+        <div class="figure-value" style="color: #4A5B6E;">2</div>
+        <div class="figure-label">Low</div>
+      </div><div class="figure">
+        <div class="figure-value" style="color: #1B1E23;">1</div>
+        <div class="figure-label">Errors</div>
+      </div>
+    </div>
+  </div>
+  <div class="severity-bar">
+      <div style="flex: 3; background: #A82C21;" title="Critical: 3"></div><div style="flex: 2; background: #B4560B;" title="High: 2"></div><div style="flex: 2; background: #8A6A05;" title="Medium: 2"></div><div style="flex: 2; background: #4A5B6E;" title="Low: 2"></div>
+    </div>
+  <div class="bar-legend"><span style="color: #A82C21;">3 critical</span><span class="legend-sep">·</span><span style="color: #B4560B;">2 high</span><span class="legend-sep">·</span><span style="color: #8A6A05;">2 medium</span><span class="legend-sep">·</span><span style="color: #4A5B6E;">2 low</span></div>
+</section>
+
+<main>
+  <section class="findings-section">
+      <h2 class="section-heading">Critical (3)</h2>
+      <div class="finding" style="border-left-color: #A82C21;">
+      <button class="finding-header" aria-expanded="false" aria-controls="finding-critical-0">
+        <div class="finding-title-row">
+          <span class="severity-label" style="color: #A82C21;">CRITICAL</span>
+          <span class="finding-title">RoleA has wildcard Bedrock permissions</span>
+        </div>
+        <div class="finding-meta">
+          <span class="rule-id">wildcard-bedrock-action</span>
+          <span class="chevron" aria-hidden="true">▸</span>
+        </div>
+      </button>
+      <div class="finding-body" id="finding-critical-0">
+        <div class="finding-detail">
+          <div class="detail-label">Resource</div>
+          <div class="detail-value mono">arn:aws:iam::111122223333:role/RoleA</div>
+        </div>
+        <div class="finding-detail">
+          <div class="detail-label">Details</div>
+          <div class="detail-value">Role has bedrock:* on *</div>
+        </div>
+        <div class="finding-detail">
+            <div class="detail-label">Threat</div>
+            <div class="detail-value">A compromised principal with bedrock:* can invoke any foundation model, extract training data via prompt extraction, poison knowledge bases, or create guardrails that selectively bypass content filters.</div>
+          </div>
+          <div class="finding-detail">
+            <div class="detail-label">Why this matters</div>
+            <div class="detail-value">A Bedrock wildcard is worse than an S3 wildcard: model invocation is irreversible (data leaves the account in the response), and guardrail/KM manipulation weakens every other control. The blast radius is every Bedrock resource in the account, not one bucket.</div>
+          </div>
+        <div class="finding-detail">
+          <div class="detail-label">Remediation</div>
+          <div class="detail-value"><pre>Scope the actions.</pre></div>
+        </div>
+        <div class="finding-detail">
+          <div class="detail-label">Compliance</div>
+          <div class="detail-value"><span class="tag">OWASP LLM06 · Excessive Agency</span><span class="tag">NIST AI RMF 1.0</span></div>
+        </div>
+        <div class="finding-detail">
+          <div class="detail-label">Reference</div>
+          <div class="detail-value"><a class="ref" href="https://docs.aws.amazon.com/bedrock/latest/userguide/security-iam.html" target="_blank" rel="noopener">https://docs.aws.amazon.com/bedrock/latest/userguide/security-iam.html</a></div>
+        </div>
+      </div>
+    </div><div class="finding" style="border-left-color: #A82C21;">
+      <button class="finding-header" aria-expanded="false" aria-controls="finding-critical-1">
+        <div class="finding-title-row">
+          <span class="severity-label" style="color: #A82C21;">CRITICAL</span>
+          <span class="finding-title">RoleD: trust policy allows wildcard principal</span>
+        </div>
+        <div class="finding-meta">
+          <span class="rule-id">wildcard-principal</span>
+          <span class="chevron" aria-hidden="true">▸</span>
+        </div>
+      </button>
+      <div class="finding-body" id="finding-critical-1">
+        <div class="finding-detail">
+          <div class="detail-label">Resource</div>
+          <div class="detail-value mono">arn:aws:iam::111122223333:role/RoleD</div>
+        </div>
+        <div class="finding-detail">
+          <div class="detail-label">Details</div>
+          <div class="detail-value">Role has bedrock:* on *</div>
+        </div>
+        <div class="finding-detail">
+            <div class="detail-label">Threat</div>
+            <div class="detail-value">Any AWS principal worldwide can assume this role and invoke models in your account. Cross-tenant and supply-chain actors can consume your model access at your cost and under your account identity.</div>
+          </div>
+          <div class="finding-detail">
+            <div class="detail-label">Why this matters</div>
+            <div class="detail-value">Wildcard trust plus Bedrock permissions is the highest-impact IAM misconfiguration for AI workloads: it turns an IAM defect into a direct model-access path for arbitrary external identities. No region or IP condition rescues a Principal: * trust.</div>
+          </div>
+        <div class="finding-detail">
+          <div class="detail-label">Remediation</div>
+          <div class="detail-value"><pre>Scope the actions.</pre></div>
+        </div>
+        <div class="finding-detail">
+          <div class="detail-label">Compliance</div>
+          <div class="detail-value"><span class="tag">OWASP LLM06 · Excessive Agency</span><span class="tag">NIST AI RMF 1.0</span></div>
+        </div>
+        
+      </div>
+    </div><div class="finding" style="border-left-color: #A82C21;">
+      <button class="finding-header" aria-expanded="false" aria-controls="finding-critical-2">
+        <div class="finding-title-row">
+          <span class="severity-label" style="color: #A82C21;">CRITICAL</span>
+          <span class="finding-title">Prompt injection signature detected: ignore-previous-instructions</span>
+        </div>
+        <div class="finding-meta">
+          <span class="rule-id">prompt-injection-ignore-previous-instructions</span>
+          <span class="chevron" aria-hidden="true">▸</span>
+        </div>
+      </button>
+      <div class="finding-body" id="finding-critical-2">
+        <div class="finding-detail">
+          <div class="detail-label">Resource</div>
+          <div class="detail-value mono">arn:aws:sts::111122223333:assumed-role/app/worker</div>
+        </div>
+        <div class="finding-detail">
+          <div class="detail-label">Details</div>
+          <div class="detail-value">Request body contains &quot;&lt;script&gt;&quot; &amp; special chars | pipes</div>
+        </div>
+        <div class="finding-detail">
+            <div class="detail-label">Threat</div>
+            <div class="detail-value">An attacker or compromised upstream application is submitting crafted prompts to override instructions, leak the system prompt, jailbreak the model, or smuggle internal reasoning.</div>
+          </div>
+          <div class="finding-detail">
+            <div class="detail-label">Why this matters</div>
+            <div class="detail-value">CloudWatch Logs carries the actual prompt body; regex on the request catches the attack at the point of injection with the principal and event ID for response. This is the project&#039;s differentiator — no vendor ships post-hoc prompt-injection detection.</div>
+          </div>
+        <div class="finding-detail">
+          <div class="detail-label">Remediation</div>
+          <div class="detail-value"><pre>Scope the actions.</pre></div>
+        </div>
+        <div class="finding-detail">
+          <div class="detail-label">Compliance</div>
+          <div class="detail-value"><span class="tag">OWASP LLM06 · Excessive Agency</span><span class="tag">NIST AI RMF 1.0</span></div>
+        </div>
+        
+      </div>
+    </div>
+    </section>
+  <section class="findings-section">
+      <h2 class="section-heading">High (2)</h2>
+      <div class="finding" style="border-left-color: #B4560B;">
+      <button class="finding-header" aria-expanded="false" aria-controls="finding-high-3">
+        <div class="finding-title-row">
+          <span class="severity-label" style="color: #B4560B;">HIGH</span>
+          <span class="finding-title">RoleA: Bedrock access has no condition keys</span>
+        </div>
+        <div class="finding-meta">
+          <span class="rule-id">no-condition-keys</span>
+          <span class="chevron" aria-hidden="true">▸</span>
+        </div>
+      </button>
+      <div class="finding-body" id="finding-high-3">
+        <div class="finding-detail">
+          <div class="detail-label">Resource</div>
+          <div class="detail-value mono">arn:aws:iam::111122223333:role/RoleA</div>
+        </div>
+        <div class="finding-detail">
+          <div class="detail-label">Details</div>
+          <div class="detail-value">Role has bedrock:* on *</div>
+        </div>
+        <div class="finding-detail">
+            <div class="detail-label">Threat</div>
+            <div class="detail-value">Bedrock access is usable from any IP, any region, at any time. A leaked long-term credential or a compromised SSRF path can invoke models from anywhere.</div>
+          </div>
+          <div class="finding-detail">
+            <div class="detail-label">Why this matters</div>
+            <div class="detail-value">Condition keys are the only IAM-layer control that constrains where and when a permission is usable. Without them, geographic and time-based abuse patterns (off-hours exfiltration, unusual-region calls) are structurally unblockable at IAM.</div>
+          </div>
+        <div class="finding-detail">
+          <div class="detail-label">Remediation</div>
+          <div class="detail-value"><pre>Scope the actions.</pre></div>
+        </div>
+        <div class="finding-detail">
+          <div class="detail-label">Compliance</div>
+          <div class="detail-value"><span class="tag">OWASP LLM06 · Excessive Agency</span><span class="tag">NIST AI RMF 1.0</span></div>
+        </div>
+        
+      </div>
+    </div><div class="finding" style="border-left-color: #B4560B;">
+      <button class="finding-header" aria-expanded="false" aria-controls="finding-high-4">
+        <div class="finding-title-row">
+          <span class="severity-label" style="color: #B4560B;">HIGH</span>
+          <span class="finding-title">Bedrock model-invocation logging disabled</span>
+        </div>
+        <div class="finding-meta">
+          <span class="rule-id">bedrock-logging-disabled</span>
+          <span class="chevron" aria-hidden="true">▸</span>
+        </div>
+      </button>
+      <div class="finding-body" id="finding-high-4">
+        <div class="finding-detail">
+          <div class="detail-label">Resource</div>
+          <div class="detail-value mono">bedrock:model-invocation-logging</div>
+        </div>
+        <div class="finding-detail">
+          <div class="detail-label">Details</div>
+          <div class="detail-value">Role has bedrock:* on *</div>
+        </div>
+        <div class="finding-detail">
+            <div class="detail-label">Threat</div>
+            <div class="detail-value">Without model-invocation logging, prompt-injection incidents and data exfiltration via LLM responses leave no audit trail. Tool 2&#039;s content scan also cannot run.</div>
+          </div>
+          <div class="finding-detail">
+            <div class="detail-label">Why this matters</div>
+            <div class="detail-value">Logging is the precondition for every detection control in this tool. A security program that cannot reconstruct what a compromised model endpoint did is blind to its primary AI incident classes (MITRE ATLAS).</div>
+          </div>
+        <div class="finding-detail">
+          <div class="detail-label">Remediation</div>
+          <div class="detail-value"><pre>Scope the actions.</pre></div>
+        </div>
+        <div class="finding-detail">
+          <div class="detail-label">Compliance</div>
+          <div class="detail-value"><span class="tag">OWASP LLM06 · Excessive Agency</span><span class="tag">NIST AI RMF 1.0</span></div>
+        </div>
+        
+      </div>
+    </div>
+    </section>
+  <section class="findings-section">
+      <h2 class="section-heading">Medium (1)</h2>
+      <div class="finding" style="border-left-color: #8A6A05;">
+      <button class="finding-header" aria-expanded="false" aria-controls="finding-medium-5">
+        <div class="finding-title-row">
+          <span class="severity-label" style="color: #8A6A05;">MEDIUM</span>
+          <span class="finding-title">Guardrail &#039;Weak&#039; has no PII filter</span>
+        </div>
+        <div class="finding-meta">
+          <span class="rule-id">guardrail-no-pii-filter</span>
+          <span class="chevron" aria-hidden="true">▸</span>
+        </div>
+      </button>
+      <div class="finding-body" id="finding-medium-5">
+        <div class="finding-detail">
+          <div class="detail-label">Resource</div>
+          <div class="detail-value mono">arn:aws:bedrock:us-east-1:111122223333:guardrail/gr-weak</div>
+        </div>
+        <div class="finding-detail">
+          <div class="detail-label">Details</div>
+          <div class="detail-value">Guardrail &#039;Weak&#039; has 0 PII entities | prompts can carry PII unmasked</div>
+        </div>
+        <div class="finding-detail">
+            <div class="detail-label">Threat</div>
+            <div class="detail-value">Prompts and responses can carry PII (SSN, email, phone) unmasked, leaking it into logs, downstream stores, or model training corpora.</div>
+          </div>
+          <div class="finding-detail">
+            <div class="detail-label">Why this matters</div>
+            <div class="detail-value">PII filtering at the guardrail layer is content-aware in a way IAM and network controls are not. Without it, the data-protection story for the workload is incomplete regardless of encryption.</div>
+          </div>
+        <div class="finding-detail">
+          <div class="detail-label">Remediation</div>
+          <div class="detail-value"><pre>Scope the actions.</pre></div>
+        </div>
+        <div class="finding-detail">
+          <div class="detail-label">Compliance</div>
+          <div class="detail-value"><span class="tag">OWASP LLM06 · Excessive Agency</span><span class="tag">NIST AI RMF 1.0</span></div>
+        </div>
+        
+      </div>
+    </div>
+    </section>
+  <section class="findings-section">
+      <h2 class="section-heading">Low (1)</h2>
+      <div class="finding" style="border-left-color: #4A5B6E;">
+      <button class="finding-header" aria-expanded="false" aria-controls="finding-low-6">
+        <div class="finding-title-row">
+          <span class="severity-label" style="color: #4A5B6E;">LOW</span>
+          <span class="finding-title">High token count Bedrock invocation: 150000 tokens</span>
+        </div>
+        <div class="finding-meta">
+          <span class="rule-id">excessive-token-usage</span>
+          <span class="chevron" aria-hidden="true">▸</span>
+        </div>
+      </button>
+      <div class="finding-body" id="finding-low-6">
+        <div class="finding-detail">
+          <div class="detail-label">Resource</div>
+          <div class="detail-value mono">arn:aws:iam::111122223333:role/RoleA</div>
+        </div>
+        <div class="finding-detail">
+          <div class="detail-label">Details</div>
+          <div class="detail-value">Role has bedrock:* on *</div>
+        </div>
+        <div class="finding-detail">
+            <div class="detail-label">Threat</div>
+            <div class="detail-value">A single invocation consuming an anomalously high token count may indicate data exfiltration via large model responses (extracted context, retrieved documents).</div>
+          </div>
+          <div class="finding-detail">
+            <div class="detail-label">Why this matters</div>
+            <div class="detail-value">Uses the real consumed totalTokenCount from invocation-log metadata, not the caller&#039;s maxTokens cap. Complements signature-based detection for novel exfiltration that does not match known injection patterns.</div>
+          </div>
+        <div class="finding-detail">
+          <div class="detail-label">Remediation</div>
+          <div class="detail-value"><pre>Scope the actions.</pre></div>
+        </div>
+        <div class="finding-detail">
+          <div class="detail-label">Compliance</div>
+          <div class="detail-value"><span class="tag">OWASP LLM06 · Excessive Agency</span><span class="tag">NIST AI RMF 1.0</span></div>
+        </div>
+        
+      </div>
+    </div>
+    </section>
+  <section class="remediation-section">
+      <h2 class="section-heading">Remediation roadmap</h2>
+      <table class="roadmap-table">
+        <thead>
+          <tr>
+            <th>Severity</th>
+            <th>Rule</th>
+            <th>Issue</th>
+            <th>Target</th>
+          </tr>
+        </thead>
+        <tbody><tr>
+        <td><span class="severity-label" style="color: #A82C21;">CRITICAL</span></td>
+        <td class="mono">wildcard-bedrock-action</td>
+        <td>RoleA has wildcard Bedrock permissions</td>
+        <td class="nowrap">Within 24 hours</td>
+      </tr><tr>
+        <td><span class="severity-label" style="color: #A82C21;">CRITICAL</span></td>
+        <td class="mono">wildcard-principal</td>
+        <td>RoleD: trust policy allows wildcard principal</td>
+        <td class="nowrap">Within 24 hours</td>
+      </tr><tr>
+        <td><span class="severity-label" style="color: #B4560B;">HIGH</span></td>
+        <td class="mono">no-condition-keys</td>
+        <td>RoleA: Bedrock access has no condition keys</td>
+        <td class="nowrap">Within 3 days</td>
+      </tr><tr>
+        <td><span class="severity-label" style="color: #B4560B;">HIGH</span></td>
+        <td class="mono">bedrock-logging-disabled</td>
+        <td>Bedrock model-invocation logging disabled</td>
+        <td class="nowrap">Within 3 days</td>
+      </tr><tr>
+        <td><span class="severity-label" style="color: #8A6A05;">MEDIUM</span></td>
+        <td class="mono">guardrail-no-pii-filter</td>
+        <td>Guardrail &#039;Weak&#039; has no PII filter</td>
+        <td class="nowrap">Within 2 weeks</td>
+      </tr><tr>
+        <td><span class="severity-label" style="color: #A82C21;">CRITICAL</span></td>
+        <td class="mono">prompt-injection-ignore-previous-instructions</td>
+        <td>Prompt injection signature detected: ignore-previous-instructions</td>
+        <td class="nowrap">Within 24 hours</td>
+      </tr><tr>
+        <td><span class="severity-label" style="color: #4A5B6E;">LOW</span></td>
+        <td class="mono">excessive-token-usage</td>
+        <td>High token count Bedrock invocation: 150000 tokens</td>
+        <td class="nowrap">Next sprint</td>
+      </tr></tbody>
+      </table>
+    </section>
+  <section class="compliance-section">
+      <h2 class="section-heading">Compliance mapping</h2>
+      <table class="compliance-table">
+        <thead><tr><th>Framework</th><th>Rules violated</th></tr></thead>
+        <tbody><tr><td class="framework-cell">NIST AI RMF 1.0</td><td><code>wildcard-bedrock-action</code>, <code>wildcard-principal</code>, <code>no-condition-keys</code>, <code>bedrock-logging-disabled</code>, <code>guardrail-no-pii-filter</code>, <code>prompt-injection-ignore-previous-instructions</code>, <code>excessive-token-usage</code></td></tr><tr><td class="framework-cell">OWASP LLM06 · Excessive Agency</td><td><code>wildcard-bedrock-action</code>, <code>wildcard-principal</code>, <code>no-condition-keys</code>, <code>bedrock-logging-disabled</code>, <code>guardrail-no-pii-filter</code>, <code>prompt-injection-ignore-previous-instructions</code>, <code>excessive-token-usage</code></td></tr></tbody>
+      </table>
+    </section>
+  <section class="passed-section">
+      <h2 class="section-heading">Passed checks (1)</h2>
+      <p class="passed-summary">No prompt injection signals detected.</p>
+    </section>
+</main>
+
+<footer class="report-footer">
+  <span>Generated by bedrock-security-mcp v0.1.0</span>
+  <span>OWASP LLM Top 10 (2025), OWASP Agentic Applications Top 10, NIST AI RMF, MITRE ATLAS</span>
+</footer>
+
+</div>
+
+<script>
+  document.querySelectorAll('.finding-header').forEach(header => {
+    header.addEventListener('click', function() {
+      const body = this.nextElementSibling;
+      const expanded = body.classList.toggle('open');
+      this.setAttribute('aria-expanded', expanded);
+      const chevron = this.querySelector('.chevron');
+      if (chevron) chevron.style.transform = expanded ? 'rotate(90deg)' : '';
+    });
+  });
+</script>
+
+</body>
+</html>
