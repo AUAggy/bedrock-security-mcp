@@ -1,5 +1,10 @@
 # bedrock-security-mcp
 
+> [!IMPORTANT]
+> **This repository is archived.** Development moved to [agent-sec-scanners](https://github.com/AUAggy/agent-sec-scanners), where this tool lives on as [`packages/bedrock`](https://github.com/AUAggy/agent-sec-scanners/tree/main/packages/bedrock), built on the shared [@miaggy/core](https://www.npmjs.com/package/@miaggy/core) audit engine alongside [@miaggy/mcp-audit](https://www.npmjs.com/package/@miaggy/mcp-audit), a supply-chain auditor for MCP server configurations.
+>
+> Nothing changes for users. The npm package keeps its name; `npx -y bedrock-security-mcp` installs the current release, which is published from the new repository with provenance and byte-identical report output (enforced by golden-file tests). Releases 0.1.x were built here, and their provenance attestations reference this repository, which is why it stays up read-only instead of being deleted.
+
 An MCP server with a CI-grade CLI. It audits the security posture of AWS Bedrock workloads: IAM roles with Bedrock permissions, model-invocation logging and its KMS encryption, guardrail quality, and prompt-injection signals in your invocation logs. Findings map to OWASP LLM Top 10 (2025), OWASP Agentic Applications Top 10, NIST AI RMF, and MITRE ATLAS.
 
 Ask Claude to audit your account, or run the same audit from a pipeline with no LLM involved. Both entrypoints call the same code and produce the same findings.
